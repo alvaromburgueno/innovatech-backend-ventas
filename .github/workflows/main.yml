@@ -36,7 +36,10 @@ jobs:
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
+          # Creamos el JSON en una variable para evitar conflictos de shell
+          COMMANDS='{"commands":["pkill -f ventas.jar || true", "nohup java -jar /home/ssm-user/app/ventas.jar > /home/ssm-user/app/ventas.log 2>&1 &"]}'
+          
           aws ssm send-command \
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
-            --parameters '{"commands":["pkill -f ventas.jar || true", "nohup java -jar /home/ssm-user/app/ventas.jar > /home/ssm-user/app/ventas.log 2>&1 &"]}'
+            --parameters "$COMMANDS"
