@@ -1,13 +1,10 @@
 name: Deploy Backend Ventas
-
 on:
   push:
     branches: [ "main" ]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -36,14 +33,21 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          INSTANCE_ID: ${{ secrets.INSTANCE_ID }}
         run: |
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "ERROR: el secret INSTANCE_ID está vacío o no existe."
+            exit 1
+          fi
+
           COMMANDS='{"commands":[
             "aws s3 cp s3://innovatech-deploy-bucket-2026/backend-ventas.jar /home/ssm-user/app/ventas.jar",
             "pkill -f ventas.jar || true",
             "sleep 2",
             "nohup java -jar /home/ssm-user/app/ventas.jar > /home/ssm-user/app/ventas.log 2>&1 &"
           ]}'
+
           aws ssm send-command \
-            --instance-ids "${{ secrets.INSTANCE_ID }}" \
+            --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
             --parameters "$COMMANDS"
