@@ -17,6 +17,7 @@ jobs:
           cache: 'maven'
 
       - name: Compilar con Maven
+        working-directory: Springboot-API-REST
         run: mvn clean package -DskipTests
 
       - name: Subir JAR a S3
@@ -25,6 +26,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        working-directory: Springboot-API-REST
         run: aws s3 cp target/*.jar s3://innovatech-deploy-bucket-2026/backend-ventas.jar
 
       - name: Desplegar en EC2 via SSM
