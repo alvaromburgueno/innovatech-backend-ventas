@@ -7,6 +7,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -17,9 +18,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
-
-      - name: Verificar estructura de archivos
-        run: ls -R
 
       - name: Compilar con Maven
         run: mvn clean package -DskipTests
@@ -39,7 +37,12 @@ jobs:
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
         run: |
-          COMMANDS='{"commands":["pkill -f ventas.jar || true", "nohup java -jar /home/ssm-user/app/ventas.jar > /home/ssm-user/app/ventas.log 2>&1 &"]}'
+          COMMANDS='{"commands":[
+            "aws s3 cp s3://innovatech-deploy-bucket-2026/backend-ventas.jar /home/ssm-user/app/ventas.jar",
+            "pkill -f ventas.jar || true",
+            "sleep 2",
+            "nohup java -jar /home/ssm-user/app/ventas.jar > /home/ssm-user/app/ventas.log 2>&1 &"
+          ]}'
           aws ssm send-command \
             --instance-ids "${{ secrets.INSTANCE_ID }}" \
             --document-name "AWS-RunShellScript" \
